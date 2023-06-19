@@ -1,5 +1,7 @@
 const { default: axios } = require("axios");
 const qrcode = require("qrcode-terminal");
+var qrcode_gui = require("qrcode");
+
 const {
   Client,
   List,
@@ -66,12 +68,30 @@ async function getSchemasAndDescriptions(id) {
   return data;
 }
 
+function checkNumberInRange(input) {
+  // Mengubah input menjadi angka menggunakan parseInt
+  const number = parseInt(input, 10);
+
+  // Memeriksa apakah input adalah angka
+  if (isNaN(number)) {
+    return false;
+  }
+
+  // Memeriksa apakah angka berada dalam rentang 1-500
+  if (number >= 1 && number <= 500) {
+    return true;
+  }
+
+  return false;
+}
+
 const client = new Client({
   authStrategy: new LocalAuth(),
 });
 
 client.on("qr", (qr) => {
   qrcode.generate(qr, { small: true });
+  qrcode_gui.toFile("./qrcode.png", qr);
 });
 
 client.on("ready", () => {
@@ -83,12 +103,18 @@ client.on("ready", () => {
   }
 
   let isStart = true;
+  let init = true;
+  let isExcited = true;
   let locationSelected = false;
   let floorSelected = false;
   let typeSelected = false;
   let isReallyExcited = false;
   let isAlmostFinish = false;
+  let isNotFinish = true;
   let isFinish = false;
+  let locationProblem = false;
+  let isRequestLocation = false;
+  let isFilledLocation = false;
 
   // session
   let floorSession = [];
@@ -96,7 +122,42 @@ client.on("ready", () => {
   let houseTypeSession = [];
   let houseTypeIDSelected;
 
+  let numberOfTopMenu = 99;
+  function choiceToTop() {
+    return `*${numberOfTopMenu}. Menu awal*`;
+  }
+
   client.on("message", async (message) => {
+    async function resetChat(showWelcoming) {
+      isStart = true;
+      init = true;
+      isExcited = true;
+      locationSelected = false;
+      floorSelected = false;
+      typeSelected = false;
+      isReallyExcited = false;
+      isAlmostFinish = false;
+      isNotFinish = true;
+      isFinish = false;
+      locationProblem = false;
+      isRequestLocation = false;
+      isFilledLocation = false;
+
+      if (showWelcoming) {
+        await client.sendMessage(
+          message.from,
+          `Halo! 👋 Kami dari Ahsana Tuban ingin mengenal Anda. Apakah Anda saat ini sedang mencari rumah ?\n\nBalas *Ya* jika Anda sedang mencari rumah.\n\nBalas *Tidak* jika Anda tidak sedang mencari rumah.\n\nTerima kasih! 🏠.
+        `
+        );
+      } else {
+        await client.sendMessage(
+          message.from,
+          `Terimakasih atas jawabanya. \n\nJika Anda sedang mencari rumah, Jangan sungkan hubungi kami kembali.\n\nTerima kasih! 🏠.`
+        );
+      }
+      isStart = false;
+    }
+
     if (isStart) {
       const text = message.body.toLowerCase();
 
@@ -109,15 +170,18 @@ client.on("ready", () => {
       }
       isStart = false;
     } else {
-      let isExcited = true;
       if (isExcited) {
-        if (message.body == "Ya" || message.body == "ya") {
+        if (message.body.toLowerCase() == "tidak") {
+          await resetChat(false);
+        } else {
           const location = await getLocations();
           if (!locationSelected) {
             await client.sendMessage(
               message.from,
-              `Terimakasih atas jawabanya. Kebetulan sekali kami memiliki beberapa titik lokasi perumahan yang tersedia :\n\n${location.data}\n\nApabila Anda tertarik dengan salah satu lokasi di atas, harap beri tahu kami nomor pilihan Anda.\n\nTerima kasih! 🏡
-              `
+              `Terimakasih atas jawabanya. Kebetulan sekali kami memiliki beberapa titik lokasi perumahan yang tersedia :\n\n${
+                location.data
+              }${choiceToTop()}\n\nApabila Anda tertarik dengan salah satu lokasi di atas, harap beri tahu kami nomor pilihan Anda.\n\nTerima kasih! 🏡
+                  `
             );
             locationSelected = true;
           } else {
@@ -128,16 +192,24 @@ client.on("ready", () => {
                 );
                 await client.sendMessage(
                   message.from,
-                  `Terimakasih telah memilih titik lokasi. Berikut adalah lantai yang tersedia di titik lokasi:\n\n${floors.data}\n\nJika Anda tertarik dengan salah satu lantai di atas, harap beri tahu kami nomor pilihan yang menjadi pilihan Anda\n\nTerimakasih!🏡`
+                  `Terimakasih telah memilih titik lokasi. Berikut adalah lantai yang tersedia di titik lokasi:\n\n${
+                    floors.data
+                  }${choiceToTop()}\n\nJika Anda tertarik dengan salah satu lantai di atas, harap beri tahu kami nomor pilihan yang menjadi pilihan Anda\n\nTerimakasih!🏡`
                 );
                 floorSession = floors;
                 floorIDSelected = floors.ids[parseInt(message.body - 1)];
                 floorSelected = true;
               } else {
-                await client.sendMessage(
-                  message.from,
-                  `Maaf nomor pilihan tidak tersedia. Mohon pilih sesuai nomor yang tersedia.\nBerikut adalah daftar lantai yang tersedia:\n${location.data}`
-                );
+                if (message.body == numberOfTopMenu) {
+                  await resetChat(true);
+                } else {
+                  await client.sendMessage(
+                    message.from,
+                    `Maaf nomor pilihan tidak tersedia. Mohon pilih sesuai nomor yang tersedia.\nBerikut adalah daftar lantai yang tersedia:\n${
+                      location.data
+                    }${choiceToTop()}`
+                  );
+                }
               }
             } else {
               if (!typeSelected) {
@@ -177,11 +249,17 @@ client.on("ready", () => {
                   );
                   typeSelected = true;
                 } else {
-                  let floor_repeat = floorSession;
-                  await client.sendMessage(
-                    message.from,
-                    `Maaf nomor pilihan tidak tersedia. Mohon pilih sesuai nomor yang tersedia.\nBerikut adalah daftar lantai yang tersedia:\n${floor_repeat.data}`
-                  );
+                  if (message.body == numberOfTopMenu) {
+                    await resetChat(true);
+                  } else {
+                    let floor_repeat = floorSession;
+                    await client.sendMessage(
+                      message.from,
+                      `Maaf nomor pilihan tidak tersedia. Mohon pilih sesuai nomor yang tersedia.\nBerikut adalah daftar lantai yang tersedia:\n${
+                        floor_repeat.data
+                      }${choiceToTop()}`
+                    );
+                  }
                 }
               } else {
                 if (!isReallyExcited) {
@@ -212,7 +290,7 @@ client.on("ready", () => {
                     await client.sendMessage(message.from, payment_desc);
                     await client.sendMessage(
                       message.from,
-                      `Apakah anda berminat ? \n\nSilahkan balas *Minat* jika anda berminat, atau balas *Tidak* jika anda tidak berminat`
+                      `Apakah anda berminat ? \n\nSilahkan balas *Minat* jika anda berminat, atau balas *Kurang Minat* jika anda kurang berminat`
                     );
                     isReallyExcited = true;
                   } else {
@@ -227,17 +305,107 @@ client.on("ready", () => {
                 } else {
                   if (!isAlmostFinish) {
                     if (
-                      message.body.toLocaleLowerCase() == "minat" ||
-                      message.body.toLocaleLowerCase() == "tidak"
+                      message.body.toLowerCase() == "minat" ||
+                      message.body.toLowerCase() == "kurang minat" ||
+                      isNotFinish
                     ) {
                       if (!isFinish) {
-                        if (message.body.toLocaleLowerCase() == "minat") {
+                        if (message.body.toLowerCase() == "minat") {
                           await client.sendMessage(
                             message.from,
                             `Terima kasih telah memilih perumahan, lantai, dan tipe rumah yang Anda inginkan. Berdasarkan pilihan tersebut, kami ingin mengetahui lebih lanjut mengenai rencana Anda. Mohon pilih salah satu opsi berikut:\n\n\n*1.Rencana beli dalam waktu dekat*: Jika Anda berencana untuk segera membeli rumah tersebut, kami akan menghubungi Anda untuk memberikan informasi lebih lanjut dan membantu proses pembelian.\n\n*2. Masih tanya-tanya dulu*: Jika Anda masih memiliki pertanyaan atau ingin meminta informasi tambahan sebelum membuat keputusan, kami siap membantu Anda. Silakan beri tahu kami pertanyaan atau kebutuhan informasi tambahan Anda.\n\n*3. Ingin langsung survei lokasi*: Jika Anda ingin segera melihat langsung lokasi perumahan dan mendapatkan informasi lebih detail, kami dapat mengatur jadwal survei untuk Anda. Silakan beri tahu kami kapan waktu yang cocok bagi Anda.\n\n\nMohon pilih nomor opsi yang sesuai dengan rencana Anda atau berikan informasi lebih lanjut mengenai kebutuhan Anda. Terima kasih!`
                           );
-                          isFinish = true;
                           isAlmostFinish = true;
+                        } else {
+                          await client.sendMessage(
+                            message.from,
+                            `Terimakasih atas jawaban anda sebelumnya. Mohon apabila data kami dirasa kurang lengkap atau lainya hingga membuat anda kurang minat. \n\nApa yang membuat anda kurang minat ?\n\n*1. Tipe*\n*2. Lokasi*\n*3. Lainya*\n\nSilahkan masukan nomor sesuai pilihan yang tersedia`
+                          );
+                        }
+                        isFinish = true;
+                      } else {
+                        if (
+                          ["1", "2", "3"].includes(
+                            message.body.toLowerCase() || isFilledLocation
+                          )
+                        ) {
+                          if (!isFilledLocation) {
+                            if (!locationProblem) {
+                              if (message.body.toLowerCase() === "1") {
+                                await client.sendMessage(
+                                  message.from,
+                                  `Baik jika alasan anda adalah *Tipe Rumah*. Saya sarankan untuk memilih tipe rumah kembali.`
+                                );
+                                isStart = true;
+                                locationSelected = false;
+                                floorSelected = false;
+                                typeSelected = false;
+                                isReallyExcited = false;
+                                isFinish = false;
+                                isNotFinish = true;
+                                isAlmostFinish = true;
+                                locationProblem = false;
+                                isRequestLocation = false;
+                                isFilledLocation = false;
+                              } else if (message.body.toLowerCase() === "2") {
+                                await client.sendMessage(
+                                  message.from,
+                                  `Baik jika alasan anda adalah *Lokasi*. Kami juga ada titik lokasi perumahan yang baru.  \n\n1. Sleko\n2. Alfalah\n 3. Tidak minat keduanya\n\n Silahkan masukan nomor sesuai pilihan yang tersedia`
+                                );
+                              }
+                              locationProblem = true;
+                            } else {
+                              if (!isRequestLocation) {
+                                if (
+                                  message.body.toLowerCase() == "1" ||
+                                  message.body.toLowerCase() == "2"
+                                ) {
+                                  await client.sendMessage(
+                                    message.from,
+                                    `Terima kasih atas respons Anda! Untuk melanjutkan proses dan memberikan informasi lebih lanjut, kami sarankan Anda menghubungi Layanan Pelanggan kami. Silakan hubungi kami melalui Whatsapp kami https://wa.me/088996825018 \n\nTim Layanan Pelanggan kami siap membantu Anda dengan segala pertanyaan, informasi tambahan, atau memandu Anda melalui proses pembelian. Jangan ragu untuk menghubungi kami sesuai kenyamanan Anda.\n\nTerima kasih atas minat Anda pada perumahan kami! Kami berharap dapat membantu Anda dalam mencapai impian memiliki rumah yang ideal.`
+                                  );
+                                  isStart = true;
+                                  locationSelected = false;
+                                  floorSelected = false;
+                                  typeSelected = false;
+                                  isReallyExcited = false;
+                                  isFinish = false;
+                                  isNotFinish = true;
+                                  isFilledLocation = false;
+                                  isAlmostFinish = true;
+                                  locationProblem = false;
+                                } else {
+                                  await client.sendMessage(
+                                    message.from,
+                                    `Anda ingin lokasi dimana ? Silahkan masukan lokasi yang di inginkan `
+                                  );
+                                  isRequestLocation = true;
+                                  isFilledLocation = true;
+                                }
+                              }
+                            }
+                          } else {
+                            await client.sendMessage(
+                              message.from,
+                              `Baik lokasi ${message.body} yang anda inginkan akan kami ajukan ke pihak terkait. Anda akan dihubungi apabila lokasi sudah tersedia. \nTerimakasih`
+                            );
+                            isStart = true;
+                            locationSelected = false;
+                            floorSelected = false;
+                            typeSelected = false;
+                            isReallyExcited = false;
+                            isFinish = false;
+                            isFilledLocation = false;
+                            isAlmostFinish = true;
+                            locationProblem = false;
+                            isRequestLocation = false;
+                          }
+                          isNotFinish = true;
+                        } else {
+                          await client.sendMessage(
+                            message.from,
+                            `Maaf nomor pilihan tidak tersedia. Silahkan masukan nomor sesuai pilihan yang tersedia`
+                          );
                         }
                       }
                     } else {
@@ -247,26 +415,36 @@ client.on("ready", () => {
                       );
                     }
                   } else {
-                    await client.sendMessage(
-                      message.from,
-                      `Terima kasih atas respons Anda! Untuk melanjutkan proses dan memberikan informasi lebih lanjut sesuai dengan rencana Anda, kami sarankan Anda menghubungi Layanan Pelanggan kami. Silakan hubungi kami melalui Whatsapp kami https://wa.me/088996825018 \n\nTim Layanan Pelanggan kami siap membantu Anda dengan segala pertanyaan, informasi tambahan, atau memandu Anda melalui proses pembelian. Jangan ragu untuk menghubungi kami sesuai kenyamanan Anda.\n\nTerima kasih atas minat Anda pada perumahan kami! Kami berharap dapat membantu Anda dalam mencapai impian memiliki rumah yang ideal.`
-                    );
+                    if (["1", "2", "3"].includes(message.body.toLowerCase())) {
+                      let purpose = "";
+                      if (message.body.toLowerCase() == "1") {
+                        purpose = "Rencana beli dalam waktu dekat";
+                      } else if (message.body.toLowerCase() == "2") {
+                        purpose = "Masih tanya-tanya dulu";
+                      } else if (message.body.toLowerCase() == "3") {
+                        purpose = "Ingin langsung survei lokasi";
+                      }
+                      await client.sendMessage(
+                        message.from,
+                        `Terima kasih atas respons Anda! Untuk melanjutkan proses dan memberikan informasi lebih lanjut sesuai dengan rencana Anda yaitu *${purpose}*, kami sarankan Anda menghubungi Layanan Pelanggan kami. Silakan hubungi kami melalui Whatsapp kami https://wa.me/088996825018 \n\nTim Layanan Pelanggan kami siap membantu Anda dengan segala pertanyaan, informasi tambahan, atau memandu Anda melalui proses pembelian. Jangan ragu untuk menghubungi kami sesuai kenyamanan Anda.\n\nTerima kasih atas minat Anda pada perumahan kami! Kami berharap dapat membantu Anda dalam mencapai impian memiliki rumah yang ideal.`
+                      );
+                    }
+                    isStart = true;
+                    locationSelected = false;
+                    floorSelected = false;
+                    typeSelected = false;
+                    isReallyExcited = false;
+                    isFinish = false;
+                    isNotFinish = true;
+                    isFilledLocation = false;
+                    isAlmostFinish = true;
+                    locationProblem = false;
+                    isRequestLocation = false;
                   }
                 }
               }
             }
           }
-        } else if (message.body == "Tidak" || message.body == "tidak") {
-          await client.sendMessage(
-            message.from,
-            "Baik, Terimakasih atas jawaban anda. Selamat melanjutkan aktifitas anda kembali"
-          );
-          isStart = true;
-        } else {
-          await client.sendMessage(
-            message.from,
-            `Maaf pilihan tidak tersedia. \n\nBalas *Ya* jika Anda sedang mencari rumah.\n\nBalas *Tidak* jika Anda tidak sedang mencari rumah.\n\nTerima kasih! 🏠.`
-          );
         }
       }
     }
