@@ -285,7 +285,6 @@ const initializeClient = () => {
                     userId,
                     `Baik anda akan kami kabari untuk next project. Terimakasih`
                   );
-                  console.log("baris 284");
                   await postNextProject(
                     "ruko",
                     "",
@@ -309,7 +308,6 @@ const initializeClient = () => {
                     userId,
                     `Baik anda akan kami kabari untuk next project. Terimakasih`
                   );
-                  console.log("baris 309");
                   await postNextProject(
                     "tanah",
                     "",
@@ -354,7 +352,6 @@ const initializeClient = () => {
 
                 userStatus[userId].nextExcitedWant = false;
                 await resetUserStatus(userId, false);
-                console.log("Baris 217 reset");
                 userStatus[userId].isLocationSelected = true; // true karena menghindari userStatus[userId].isLocationSelected
                 userStatus[userId].isLocationSelected = true;
                 userStatus[userId].isFloorSelected = true;
@@ -395,7 +392,6 @@ const initializeClient = () => {
                 userStatus[userId].isFloorSelected = false;
               } else {
                 if (message.body == numberOfTopMenu) {
-                  console.log("Baris 317 reset");
                   await resetUserStatus(userId, true);
                 } else {
                   console.log("masuk 265");
@@ -508,7 +504,6 @@ const initializeClient = () => {
                 userStatus[userId].isSchemaSelected = false;
               } else {
                 if (message.body == numberOfTopMenu) {
-                  console.log("Baris 435 reset");
                   await resetUserStatus(userId, true);
                 } else {
                   await client.sendMessage(
@@ -704,7 +699,6 @@ const initializeClient = () => {
                 await resetUserStatus(userId, false);
               } else {
                 // salah
-                console.log("baris 615");
                 await client.sendMessage(
                   userId,
                   "Maaf pilihan tidak tersedia. Silahkan pilih nomor yang sesuai"
