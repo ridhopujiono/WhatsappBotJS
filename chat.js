@@ -414,22 +414,11 @@ const initializeClient = () => {
             userStatus[userId].isFloorFilled = true;
           }
 
-          console.log(
-            "userStatus[userId].isMitraLocationSelected : 424",
-            userStatus[userId].isMitraLocationSelected
-          );
           if (!userStatus[userId].isFloorSelected) {
             if (!userStatus[userId].isFloorFilled) {
               if (
                 userStatus[userId].floorSession.choice.includes(message.body)
               ) {
-                console.log(
-                  "ID lantai",
-                  userStatus[userId].floorSession.ids[
-                    parseInt(message.body - 1)
-                  ]
-                );
-
                 userStatus[userId].floorIDSelected =
                   userStatus[userId].floorSession.ids[
                     parseInt(message.body - 1)
@@ -478,10 +467,8 @@ const initializeClient = () => {
               } else {
                 // salah
                 if (message.body == numberOfTopMenu) {
-                  console.log("Baris 338 reset");
                   await resetUserStatus(userId, true);
                 } else {
-                  console.log("masuk 241");
                   await client.sendMessage(
                     userId,
                     `Maaf nomor pilihan tidak tersedia. Mohon pilih sesuai nomor yang tersedia.\nBerikut adalah daftar lantai yang tersedia:\n${
@@ -495,15 +482,11 @@ const initializeClient = () => {
                 userStatus[userId].isFloorSelected = false;
               }
             } else {
-              console.log("Baris 353");
               userStatus[userId].isFloorFilled = false;
             }
             userStatus[userId].isHouseTypeFilled = true;
           }
-          console.log(
-            "userStatus[userId].isMitraLocationSelected : 506",
-            userStatus[userId].isMitraLocationSelected
-          );
+
           if (!userStatus[userId].isHouseTypeSelected) {
             if (!userStatus[userId].isHouseTypeFilled) {
               if (
@@ -544,10 +527,6 @@ const initializeClient = () => {
             userStatus[userId].isSchemaFilled = true;
           }
 
-          console.log(
-            "userStatus[userId].isMitraLocationSelected : 546",
-            userStatus[userId].isMitraLocationSelected
-          );
           if (!userStatus[userId].isSchemaSelected) {
             if (!userStatus[userId].isSchemaFilled) {
               if (["1", "2", "3"].includes(message.body)) {
@@ -623,10 +602,6 @@ const initializeClient = () => {
             }
           }
 
-          console.log(
-            "userStatus[userId].isMitraLocationSelected : 625",
-            userStatus[userId].isMitraLocationSelected
-          );
           if (!userStatus[userId].isMinat) {
             if (!userStatus[userId].isMinatFilled) {
               if (message.body.toLowerCase() == "minat") {
@@ -654,8 +629,6 @@ const initializeClient = () => {
                 userStatus[userId].isMinatFalse = false;
                 userStatus[userId].isMinatFalseFilled = true;
               } else {
-                // salah
-                console.log("baris 581");
                 await client.sendMessage(
                   userId,
                   "Maaf pilihan tidak tersedia. Balas *Minat* atau *Kurang minat*"
@@ -670,10 +643,7 @@ const initializeClient = () => {
               userStatus[userId].isMinatFilled = false;
             }
           }
-          console.log(
-            "userStatus[userId].isMitraLocationSelected : 672",
-            userStatus[userId].isMitraLocationSelected
-          );
+
           if (!userStatus[userId].isMinatTrue) {
             if (!userStatus[userId].isMinatTrueFilled) {
               if (["1", "2", "3"].includes(message.body)) {
@@ -748,10 +718,6 @@ const initializeClient = () => {
             }
           }
 
-          console.log(
-            "userStatus[userId].isMitraLocationSelected : 750",
-            userStatus[userId].isMitraLocationSelected
-          );
           if (!userStatus[userId].isMinatFalse) {
             if (!userStatus[userId].isMinatFalseFilled) {
               if (["1", "2", "3"].includes(message.body)) {
@@ -814,10 +780,7 @@ const initializeClient = () => {
               userStatus[userId].isMitraLocationSelectedFilled = false;
             }
           }
-          console.log(
-            "userStatus[userId].isHaveProblemFilled 2 : ",
-            userStatus[userId].isHaveProblemFilled
-          );
+
           if (!userStatus[userId].isHaveProblem) {
             if (!userStatus[userId].isHaveProblemFilled) {
               userStatus[userId].isHaveProblem = true;
