@@ -171,12 +171,13 @@ const client = new Client({
 });
 const initializeClient = () => {
   client.on("qr", (qr) => {
+    console.log("Jika muncul QR Code tolong scan dahulu!");
     qrcode.generate(qr, { small: true });
     qrcode_gui.toFile("./qrcode.png", qr);
   });
 
   client.on("ready", () => {
-    console.log("Client is ready!");
+    console.log("Aplikasi berjalan dan siap dipakai!");
 
     client.on("message", async (message) => {
       const userId = message.from;
