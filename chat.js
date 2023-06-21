@@ -10,7 +10,7 @@ const {
   MessageMedia,
 } = require("whatsapp-web.js");
 
-const BASE_URL = "http://127.0.0.1:8000/api";
+const BASE_URL = "https://ahsanatuban.com/dashboard-bot/api";
 
 // Menyimpan status dan riwayat obrolan pengguna
 const userStatus = {};
@@ -461,7 +461,8 @@ const initializeClient = () => {
                       userId,
                       await MessageMedia.fromUrl(
                         userStatus[userId].houseTypeSession.data[i].house_types
-                          .image[j]
+                          .image[j],
+                        { unsafeMime: true }
                       )
                     );
                   }
