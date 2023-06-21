@@ -144,7 +144,6 @@ async function postUrgentProject(
     follow_up: follow_up,
     phone_number: phone_number,
   });
-  console.log(data);
 }
 async function postNextProject(type, descriptions, phone_number) {
   const { data } = await axios.post(BASE_URL + "/next_project/", {
@@ -152,7 +151,6 @@ async function postNextProject(type, descriptions, phone_number) {
     descriptions: descriptions,
     phone_number: phone_number,
   });
-  console.log(data);
 }
 function welcomeMessage() {
   return `Halo! 👋 Kami dari Ahsana Tuban ingin mengenal Anda. Apakah Anda saat ini sedang mencari rumah ?\n\nBalas *Ya* jika Anda sedang mencari rumah.\n\nBalas *Tidak* jika Anda tidak sedang mencari rumah.\n\nTerima kasih! 🏠.
@@ -296,7 +294,6 @@ const initializeClient = () => {
                   );
                   await resetUserStatus(userId, false);
                   userStatus[userId].nextExcitedAnswer = false;
-                  console.log("reset 192");
 
                   userStatus[userId].isLocationSelected = true;
                   userStatus[userId].isFloorSelected = true;
@@ -367,20 +364,12 @@ const initializeClient = () => {
               if (
                 userStatus[userId].locationSession.choice.includes(message.body)
               ) {
-                console.log(
-                  "ID lokasi",
-                  userStatus[userId].locationSession.ids[
-                    parseInt(message.body - 1)
-                  ]
-                );
-
                 userStatus[userId].floorSession = await getFloors(
                   userStatus[userId].locationSession.ids[
                     parseInt(message.body - 1)
                   ]
                 );
 
-                console.log("=BODY=", message.body);
                 await client.sendMessage(
                   userId,
                   `Terimakasih telah memilih titik lokasi. Berikut adalah lantai yang tersedia di titik lokasi:\n\n${
@@ -394,7 +383,6 @@ const initializeClient = () => {
                 if (message.body == numberOfTopMenu) {
                   await resetUserStatus(userId, true);
                 } else {
-                  console.log("masuk 265");
                   await client.sendMessage(
                     userId,
                     `Maaf nomor pilihan tidak tersedia. Mohon pilih sesuai nomor yang tersedia.\nBerikut adalah daftar lokasi yang tersedia:\n${
@@ -750,10 +738,7 @@ const initializeClient = () => {
             userStatus[userId].isMitraLocationSelectedFilled = true;
             userStatus[userId].isHaveProblemFilled = true;
           }
-          console.log(
-            "userStatus[userId].isMitraLocationSelected : 789",
-            userStatus[userId].isMitraLocationSelected
-          );
+
           if (!userStatus[userId].isMitraLocationSelected) {
             if (!userStatus[userId].isMitraLocationSelectedFilled) {
               userStatus[userId].isMitraLocationSelected = true;
