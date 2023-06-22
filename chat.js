@@ -666,8 +666,7 @@ const initializeClient = () => {
                   );
                   await client.sendMessage(
                     userId,
-                    `Terima kasih sudah menyampaikan kebutuhan rumah Bapak/Ibu kepada MinHouse.\nDalam waktu dekat akan ada tim Ahsana Tuban yang akan menghubungi Bapak/Ibu untuk melanjutkan diskusi dan penawaran yang lebih detail.\n\n
-                    Terima kasih!`
+                    `Terima kasih sudah menyampaikan kebutuhan rumah Bapak/Ibu kepada MinHouse.\nDalam waktu dekat akan ada tim Ahsana Tuban yang akan menghubungi Bapak/Ibu untuk melanjutkan diskusi dan penawaran yang lebih detail.\nTerima kasih!`
                   );
                   userStatus[userId].isMinatTrue = true;
                 } else if (message.body.toLowerCase() == "2") {
@@ -680,8 +679,7 @@ const initializeClient = () => {
                   );
                   await client.sendMessage(
                     userId,
-                    `Terima kasih sudah menyampaikan kebutuhan rumah Bapak/Ibu kepada MinHouse.\nDalam waktu dekat akan ada tim Ahsana Tuban yang akan menghubungi Bapak/Ibu untuk melanjutkan diskusi dan penawaran yang lebih detail.\n\n
-                    Terima kasih!`
+                    `Terima kasih sudah menyampaikan kebutuhan rumah Bapak/Ibu kepada MinHouse.\nDalam waktu dekat akan ada tim Ahsana Tuban yang akan menghubungi Bapak/Ibu untuk melanjutkan diskusi dan penawaran yang lebih detail.\nTerima kasih!`
                   );
                   userStatus[userId].isMinatTrue = true;
                   userStatus[userId].isMinatTrue = false;
@@ -698,8 +696,7 @@ const initializeClient = () => {
                   );
                   await client.sendMessage(
                     userId,
-                    `Terima kasih sudah menyampaikan kebutuhan rumah Bapak/Ibu kepada MinHouse.\nDalam waktu dekat akan ada tim Ahsana Tuban yang akan menghubungi Bapak/Ibu untuk melanjutkan diskusi dan penawaran yang lebih detail.\n\n
-                    Terima kasih!`
+                    `Terima kasih sudah menyampaikan kebutuhan rumah Bapak/Ibu kepada MinHouse.\nDalam waktu dekat akan ada tim Ahsana Tuban yang akan menghubungi Bapak/Ibu untuk melanjutkan diskusi dan penawaran yang lebih detail.\nTerima kasih!`
                   );
                   userStatus[userId].isMinatTrue = true;
                   userStatus[userId].isMinatTrue = false;
