@@ -70,15 +70,15 @@ function resetUserStatus(userId, needWelcoming) {
 
   if (needWelcoming) {
     // Kirim pesan sambutan jika diperlukan
-    const welcomeMessage = `Halo! 👋 Kami dari Ahsana Tuban ingin mengenal Anda. Apakah Anda saat ini sedang mencari rumah ?\n\nBalas *Ya* jika Anda sedang mencari rumah.\n\nBalas *Tidak* jika Anda tidak sedang mencari rumah.\n\nTerima kasih! 🏠.`;
+    const welcomeMessage = `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\nKetik *Ya* kalau kamu sedang cari rumah\nKetik *Tidak* kalau tidak sedang cari rumah\n\nTerimakasih! ☺️`;
     client.sendMessage(userId, welcomeMessage);
     userStatus[userId].isStart = true;
   }
 }
 
-let numberOfTopMenu = 99;
+let numberOfTopMenu = "99";
 function choiceToTop() {
-  return `*${numberOfTopMenu}. Menu awal*`;
+  return `\nBelum tertarik? \nKetik: 99 Untuk kembali ke Menu Awal`;
 }
 
 async function getLocations() {
@@ -96,6 +96,10 @@ async function getLocations() {
     data: text,
     choice: choice,
   };
+}
+async function getLocationById(id) {
+  const { data } = await axios.get(BASE_URL + "/locations/" + id);
+  return data;
 }
 
 async function getFloors(id) {
@@ -146,15 +150,15 @@ async function postUrgentProject(
   });
 }
 async function postNextProject(type, descriptions, phone_number) {
-  const { data } = await axios.post(BASE_URL + "/next_project/", {
+  const { data } = await axios.post(BASE_URL + "/next_project", {
     type: type,
     descriptions: descriptions,
     phone_number: phone_number,
   });
+  return data;
 }
 function welcomeMessage() {
-  return `Halo! 👋 Kami dari Ahsana Tuban ingin mengenal Anda. Apakah Anda saat ini sedang mencari rumah ?\n\nBalas *Ya* jika Anda sedang mencari rumah.\n\nBalas *Tidak* jika Anda tidak sedang mencari rumah.\n\nTerima kasih! 🏠.
-        `;
+  return `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\nKetik *Ya* kalau kamu sedang cari rumah\nKetik *Tidak* kalau tidak sedang cari rumah\n\nTerimakasih! ☺️`;
 }
 
 async function getSchemasAndDescriptions(id) {
@@ -203,9 +207,9 @@ const initializeClient = () => {
               userStatus[userId].locationSession = await getLocations();
               await client.sendMessage(
                 userId,
-                `Terimakasih atas jawabanya. Kebetulan sekali kami memiliki beberapa titik lokasi perumahan yang tersedia :\n\n${
+                `Wah pas banget nih, kami punya proyek aktif yang mungkin cocok untuk kamu. \nKetik nomor proyek yang ingin kamu cari tahu ya!:\n\n${
                   userStatus[userId].locationSession.data
-                }${choiceToTop()}\n\nApabila Anda tertarik dengan salah satu lokasi di atas, harap beri tahu kami nomor pilihan Anda.\n\nTerima kasih! 🏡`
+                }${choiceToTop()}`
               );
               userStatus[userId].isExcited = true;
               userStatus[userId].nextExcited = true;
@@ -236,7 +240,7 @@ const initializeClient = () => {
             } else {
               await client.sendMessage(
                 userId,
-                `Maaf pilihan tidak tersedia.\n\nBalas *Ya* jika Anda sedang mencari rumah\nBalas *Tidak* jika Anda tidak sedang mencari rumah`
+                `Maaf pilihan tidak tersedia.\n\nKetik *Ya* kalau kamu sedang cari rumah\nKetik *Tidak* kalau kamu tidak sedang cari rumah`
               );
               // salah
               userStatus[userId].isExcited = false;
@@ -257,7 +261,7 @@ const initializeClient = () => {
           if (!userStatus[userId].nextExcited) {
             await client.sendMessage(
               userId,
-              `Baik apakah anda tertarik dengan layanan kami lainya ? \n\n1. Ruko\n2. Tanah 3. Tidak keduanya`
+              `Apakah Kamu saat ini sedang mencari produk berikut ?\n\n1. Ruko\n2. Tanah\n3. Tidak minat kedua produk diatas\n99. Kembali ke Menu Awal`
             );
             userStatus[userId].nextExcited = true; // untuk next kepertanyaan selanjutnya
             userStatus[userId].isExcited = true;
@@ -267,7 +271,7 @@ const initializeClient = () => {
               if (message.body.toLowerCase() == "3") {
                 await client.sendMessage(
                   userId,
-                  `Mohon tuliskan anda tertarik pada apa`
+                  `Mohon tuliskan kamu tertarik apa`
                 );
                 userStatus[userId].nextExcitedWant = true;
                 userStatus[userId].nextExcitedAnswer = false;
@@ -281,7 +285,7 @@ const initializeClient = () => {
                 if (message.body.toLowerCase() == "1") {
                   await client.sendMessage(
                     userId,
-                    `Baik anda akan kami kabari untuk next project. Terimakasih`
+                    `Terima kasih telah menyampaikan kebutuhan yang dicari, namun saat ini Ahsana belum dapat memenuhinya. Next kalau misal kami ada penawaran menarik akan segera informasikan.`
                   );
                   await postNextProject(
                     "ruko",
@@ -303,7 +307,7 @@ const initializeClient = () => {
                 } else if (message.body.toLowerCase() == "2") {
                   await client.sendMessage(
                     userId,
-                    `Baik anda akan kami kabari untuk next project. Terimakasih`
+                    `Terima kasih telah menyampaikan kebutuhan yang dicari, namun saat ini Ahsana belum dapat memenuhinya. Next kalau misal kami ada penawaran menarik akan segera informasikan.`
                   );
                   await postNextProject(
                     "tanah",
@@ -323,18 +327,23 @@ const initializeClient = () => {
                   userStatus[userId].isSchemaSelected = true;
                   userStatus[userId].isMinat = true;
                 } else {
-                  await client.sendMessage(
-                    userId,
-                    `Maaf pilihan tidak tersedia. Silahkan pilih layanan kami lainya ? \n\n1. Ruko\n2. Tanah 3. Tidak keduanya `
-                  );
-                  userStatus[userId].nextExcitedAnswer = true;
+                  if (message.body.toLowerCase() == "99") {
+                    await resetUserStatus(userId, true);
+                    userStatus[userId].isLocationSelected = true;
+                  } else {
+                    await client.sendMessage(
+                      userId,
+                      `Maaf pilihan tidak tersedia. Silahkan pilih layanan kami lainya ? \n\n1. Ruko\n2. Tanah\n3. Tidak minat kedua produk diatas\n99. Kembali ke Menu Awal `
+                    );
+                    userStatus[userId].nextExcitedAnswer = true;
+                  }
                 }
               }
             } else {
               if (userStatus[userId].nextExcitedWant) {
                 await client.sendMessage(
                   userId,
-                  `Baik anda akan kami kabari tentang *${message.body}* untuk next project. Terimakasih`
+                  `Terima kasih telah menyampaikan kebutuhan yang dicari, namun saat ini Ahsana belum dapat memenuhinya. Next kalau misal kami ada penawaran menarik akan segera informasikan.`
                 );
 
                 await postNextProject(
@@ -369,12 +378,18 @@ const initializeClient = () => {
                     parseInt(message.body - 1)
                   ]
                 );
-
+                userStatus[userId].locationName = await getLocationById(
+                  userStatus[userId].locationSession.ids[
+                    parseInt(message.body - 1)
+                  ]
+                );
                 await client.sendMessage(
                   userId,
-                  `Terimakasih telah memilih titik lokasi. Berikut adalah lantai yang tersedia di titik lokasi:\n\n${
+                  `Di ${
+                    userStatus[userId].locationName.location_name
+                  }, kami punya tipe tipe lantai yang bisa dipilih. \n\nKetik: \n${
                     userStatus[userId].floorSession.data
-                  }${choiceToTop()}\n\nJika Anda tertarik dengan salah satu lantai di atas, harap beri tahu kami nomor pilihan yang menjadi pilihan Anda\n\nTerimakasih!🏡`
+                  }${choiceToTop()}`
                 );
                 //   di skip karena sudah benar
                 userStatus[userId].isLocationSelected = true;
@@ -385,7 +400,7 @@ const initializeClient = () => {
                 } else {
                   await client.sendMessage(
                     userId,
-                    `Maaf nomor pilihan tidak tersedia. Mohon pilih sesuai nomor yang tersedia.\nBerikut adalah daftar lokasi yang tersedia:\n${
+                    `Maaf nomor pilihan tidak tersedia. Mohon pilih sesuai nomor yang tersedia. \n\nKetik: \n${
                       userStatus[userId].locationSession.data
                     }${choiceToTop()}`
                   );
@@ -412,18 +427,15 @@ const initializeClient = () => {
                   userStatus[userId].floorIDSelected
                 );
 
+                await client.sendMessage(
+                  userId,
+                  `Kami punya tipe tipe rumah yang cocok, sesuai dengan lantai pilihanmu.\nTertarik yang mana nih? ☺️.\n`
+                );
                 for (
                   let i = 0;
                   i < userStatus[userId].houseTypeSession.data.length;
                   i++
                 ) {
-                  await client.sendMessage(
-                    userId,
-                    `${i + 1}. ${
-                      userStatus[userId].houseTypeSession.data[i].house_types
-                        .house_type_name
-                    }`
-                  );
                   for (
                     let j = 0;
                     j <
@@ -443,11 +455,10 @@ const initializeClient = () => {
                 }
                 await client.sendMessage(
                   userId,
-                  `Silakan masukkan nomor pilihan Anda berdasarkan tipe rumah yang Anda inginkan. :\n${
+                  `Jadi kamu tertarik dengan yang mana nih ?\n\n${
                     userStatus[userId].houseTypeSession.text
-                  }${choiceToTop()}\n\nTerimakasih!🏡`
+                  }${choiceToTop()}`
                 );
-
                 userStatus[userId].isFloorSelected = true;
               } else {
                 // salah
@@ -480,12 +491,25 @@ const initializeClient = () => {
                 )
               ) {
                 userStatus[userId].houseTypeIDSelected =
-                  userStatus[userId].houseTypeSession.ids[
-                    parseInt(message.body - 1)
-                  ];
+                  userStatus[userId].houseTypeIDSelected !== undefined
+                    ? userStatus[userId].houseTypeIDSelected
+                    : userStatus[userId].houseTypeSession.ids[
+                        parseInt(message.body - 1)
+                      ];
+
+                userStatus[userId].houseDetail =
+                  await getSchemasAndDescriptions(
+                    userStatus[userId].houseTypeIDSelected
+                  );
+
                 await client.sendMessage(
                   userId,
-                  `Kami ada 3 skema pembayaran. Mohon pilih skema pembayaran berikut: \n\n*1. Cash* \n*2. Credit*\n*3. Tempo*\n${choiceToTop()}`
+                  userStatus[userId].houseDetail.descriptions
+                );
+
+                await client.sendMessage(
+                  userId,
+                  `Di Ahsana ada 3 skema yang bisa kamu pilih.Mana yang cocok dengan rencana keuangan kamu?\n\n1. Cash Keras\n2. Cash Tempo\n3. Kredit\n${choiceToTop()}`
                 );
 
                 userStatus[userId].isHouseTypeSelected = true;
@@ -532,7 +556,7 @@ const initializeClient = () => {
                   );
                   userStatus[userId].isSchemaSelected = true;
                   userStatus[userId].isMinat = true;
-                } else if (message.body == "2") {
+                } else if (message.body == "3") {
                   userStatus[userId].selectedPayment = userStatus[
                     userId
                   ].schemaSession.house_floor_type_payments.find(
@@ -545,7 +569,7 @@ const initializeClient = () => {
                   );
                   userStatus[userId].isSchemaSelected = true;
                   userStatus[userId].isMinat = true;
-                } else if (message.body == "3") {
+                } else if (message.body == "2") {
                   userStatus[userId].selectedPayment = userStatus[
                     userId
                   ].schemaSession.house_floor_type_payments.find(
@@ -562,7 +586,7 @@ const initializeClient = () => {
 
                 await client.sendMessage(
                   userId,
-                  `Apakah anda berminat ? \n\nBalas *Minat* jika berminat\nBalas *Kurang minat* jika kurang berminat`
+                  `Apakah kamu berminat ? \n\nBalas *Minat* jika berminat\nBalas *Kurang minat* jika kurang berminat`
                 );
 
                 userStatus[userId].isMinat = false;
@@ -592,7 +616,8 @@ const initializeClient = () => {
                 // lanjut iya
                 await client.sendMessage(
                   userId,
-                  `Terima kasih telah memilih perumahan, lantai, dan tipe rumah yang Anda inginkan. Berdasarkan pilihan tersebut, kami ingin mengetahui lebih lanjut mengenai rencana Anda. Mohon pilih salah satu opsi berikut:\n\n\n*1.Rencana beli dalam waktu dekat*.\n\n*2. Masih tanya-tanya dulu*\n\n*3. Ingin langsung survei lokasi*.\n\n\nMohon pilih nomor opsi yang sesuai dengan rencana Anda atau berikan informasi lebih lanjut mengenai kebutuhan Anda. Terima kasih!`
+                  `Terima kasih untuk informasi yang sudah disampaikan ya!\nTim CS kami akan segera menghubungi Bapak/Ibu untuk penjelasan dan diskusi lebih lanjutnya.\nNamun sebelum itu, MinHouse ingin tahu nih, seberapa urgen Bapak/Ibu mencari rumah?
+                  \n\n*1. Rencana beli dalam waktu dekat*.\n\n*2. Masih tanya-tanya dulu min*\n\n*3. Ingin mengecek lokasinya dulu*`
                 );
                 userStatus[userId].isMinat = true;
                 userStatus[userId].isMinatTrue = false;
@@ -605,7 +630,7 @@ const initializeClient = () => {
                 // lanjut tidak
                 await client.sendMessage(
                   userId,
-                  `Terimakasih atas jawaban anda sebelumnya. Mohon apabila data kami dirasa kurang lengkap atau lainya hingga membuat anda kurang minat. \n\nApa yang membuat anda kurang minat ?\n\n*1. Tipe*\n*2. Lokasi*\n*3. Lainya*\n\nSilahkan masukan nomor sesuai pilihan yang tersedia`
+                  `Yaah..kalau boleh tahu, alasan apa yang membuat Bapak/Ibu tidak tertarik dengan produk Ahsana?\nMasukan dari Bapak/Ibu ini akan kami gunakan untuk memperbaiki pelayanan dan produk kami kedepannya.\n\n*1. Harga / Skema*\n*2. Tipe*\n*3. Lokasi*\n4. Lainya\n${choiceToTop()}`
                 );
                 userStatus[userId].isMinat = true;
                 userStatus[userId].isMinatTrue = true;
@@ -641,7 +666,8 @@ const initializeClient = () => {
                   );
                   await client.sendMessage(
                     userId,
-                    `Baik terimakasih, Anda akan dihubungi secepatnya oleh pihak kami!`
+                    `Terima kasih sudah menyampaikan kebutuhan rumah Bapak/Ibu kepada MinHouse.\nDalam waktu dekat akan ada tim Ahsana Tuban yang akan menghubungi Bapak/Ibu untuk melanjutkan diskusi dan penawaran yang lebih detail.\n\n
+                    Terima kasih!`
                   );
                   userStatus[userId].isMinatTrue = true;
                 } else if (message.body.toLowerCase() == "2") {
@@ -654,7 +680,8 @@ const initializeClient = () => {
                   );
                   await client.sendMessage(
                     userId,
-                    `Baik terimakasih, Anda akan dihubungi secepatnya oleh pihak kami!`
+                    `Terima kasih sudah menyampaikan kebutuhan rumah Bapak/Ibu kepada MinHouse.\nDalam waktu dekat akan ada tim Ahsana Tuban yang akan menghubungi Bapak/Ibu untuk melanjutkan diskusi dan penawaran yang lebih detail.\n\n
+                    Terima kasih!`
                   );
                   userStatus[userId].isMinatTrue = true;
                   userStatus[userId].isMinatTrue = false;
@@ -671,7 +698,8 @@ const initializeClient = () => {
                   );
                   await client.sendMessage(
                     userId,
-                    `Baik terimakasih, Anda akan dihubungi secepatnya oleh pihak kami!`
+                    `Terima kasih sudah menyampaikan kebutuhan rumah Bapak/Ibu kepada MinHouse.\nDalam waktu dekat akan ada tim Ahsana Tuban yang akan menghubungi Bapak/Ibu untuk melanjutkan diskusi dan penawaran yang lebih detail.\n\n
+                    Terima kasih!`
                   );
                   userStatus[userId].isMinatTrue = true;
                   userStatus[userId].isMinatTrue = false;
@@ -703,34 +731,50 @@ const initializeClient = () => {
 
           if (!userStatus[userId].isMinatFalse) {
             if (!userStatus[userId].isMinatFalseFilled) {
-              if (["1", "2", "3"].includes(message.body)) {
-                if (message.body == "1") {
+              if (["1", "2", "3", "4"].includes(message.body)) {
+                if (message.body == "2") {
                   await client.sendMessage(
                     userId,
-                    `Baik jika alasan anda adalah *Tipe Rumah*. Saya sarankan untuk memilih tipe rumah kembali.`
+                    `Baik jika alasan kamu adalah *Tipe Rumah*. Saya sarankan untuk memilih tipe rumah kembali.`
                   );
                   await resetUserStatus(userId, false);
-                } else if (message.body == "2") {
-                  await client.sendMessage(
-                    userId,
-                    `Mohon isikan lokasi yang anda inginkan.`
-                  );
-                  userStatus[userId].isMitraLocationSelected = false;
-                  userStatus[userId].isMinatFalse = true;
                 } else if (message.body == "3") {
                   await client.sendMessage(
                     userId,
-                    `Problem apa yang anda alami ?`
+                    `Mohon isikan lokasi yang kamu inginkan.`
+                  );
+                  userStatus[userId].isMitraLocationSelected = false;
+                  userStatus[userId].isMinatFalse = true;
+                } else if (message.body == "1") {
+                  userStatus[userId].isMinatFalse = true;
+                  userStatus[userId].isMinatFalseFilled = true;
+                  userStatus[userId].isMinat = true;
+                  userStatus[userId].isHouseTypeSelected = true;
+                  userStatus[userId].isHouseTypeFilled = true;
+                  userStatus[userId].isSchemaSelected = false;
+
+                  await client.sendMessage(
+                    userId,
+                    `Di Ahsana ada 3 skema yang bisa kamu pilih.Mana yang cocok dengan rencana keuangan kamu?\n\n1. Cash Keras\n2. Cash Tempo\n3. Kredit${choiceToTop()}`
+                  );
+                } else if (message.body == "4") {
+                  await client.sendMessage(
+                    userId,
+                    `Problem apa yang kamu alami ?`
                   );
                   userStatus[userId].isHaveProblem = false;
                   userStatus[userId].isMinatFalse = true;
                 }
               } else {
-                await client.sendMessage(
-                  userId,
-                  "Maaf pilihan tidak tersedia. Silahkan pilih sesuai nomor"
-                );
-                userStatus[userId].isMinatFalse = false;
+                if (message.body == numberOfTopMenu) {
+                  await resetUserStatus(userId, true);
+                } else {
+                  await client.sendMessage(
+                    userId,
+                    "Maaf pilihan tidak tersedia. Silahkan pilih sesuai nomor"
+                  );
+                  userStatus[userId].isMinatFalse = false;
+                }
               }
             } else {
               userStatus[userId].isMinatFalseFilled = false;
@@ -738,7 +782,6 @@ const initializeClient = () => {
             userStatus[userId].isMitraLocationSelectedFilled = true;
             userStatus[userId].isHaveProblemFilled = true;
           }
-
           if (!userStatus[userId].isMitraLocationSelected) {
             if (!userStatus[userId].isMitraLocationSelectedFilled) {
               userStatus[userId].isMitraLocationSelected = true;
@@ -749,7 +792,7 @@ const initializeClient = () => {
               );
               await client.sendMessage(
                 userId,
-                `Baik anda akan kami kabari untuk next project. Terimakasih`
+                `Baik kamu akan kami kabari untuk next project. Terimakasih`
               );
               await client.sendMessage(
                 "6288996825018@s.whatsapp.net",
@@ -771,7 +814,7 @@ const initializeClient = () => {
               );
               await client.sendMessage(
                 userId,
-                `Baik anda akan kami kabari untuk next project. Terimakasih`
+                `Baik kamu akan kami kabari untuk next project. Terimakasih`
               );
               await client.sendMessage(
                 "6288996825018@s.whatsapp.net",
