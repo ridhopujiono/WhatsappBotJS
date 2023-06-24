@@ -15,30 +15,6 @@ const BASE_URL = "https://ahsanatuban.com/dashboard-bot/api";
 // Menyimpan status dan riwayat obrolan pengguna
 const userStatus = {};
 
-// Fungsi untuk mendapatkan status pengguna
-function getUserStatus(userId) {
-  if (!userStatus[userId]) {
-    // Buat entri baru untuk pengguna yang belum ada status
-    userStatus[userId] = {
-      isStart: false,
-      nextExcited: false,
-      nextExcitedAnswer: false,
-      nextExcitedWant: false,
-      isExcited: false,
-      isLocationSelected: false,
-      isFloorSelected: false,
-      isHouseTypeSelected: false,
-      isSchemaSelected: false,
-      isMinat: false,
-      locationSession: [],
-      floorSession: [],
-      houseTypeSession: [],
-      // Tambahkan properti status pengguna lainnya di sini
-    };
-  }
-  return userStatus[userId];
-}
-
 // Fungsi untuk mereset status pengguna
 function resetUserStatus(userId, needWelcoming) {
   userStatus[userId] = {
@@ -183,14 +159,18 @@ const initializeClient = () => {
 
     client.on("message", async (message) => {
       const userId = message.from;
-      try {
-        // Mendapatkan status pengguna
-        const user = getUserStatus(userId);
 
+      // Memastikan objek userStatus[userId] sudah didefinisikan
+      if (!userStatus[userId]) {
+        userStatus[userId] = {};
+      }
+
+      userStatus[userId].messageBody = message.body;
+      try {
         // Mendapatkan status dan riwayat obrolan pengguna
 
         if (!userStatus[userId].isStart) {
-          const text = message.body.toLowerCase();
+          const text = userStatus[userId].messageBody.toLowerCase();
           // Menangkap kata apa pun dari pengguna
           const regex = /(\w+)/g;
           const matches = text.match(regex);
@@ -202,7 +182,7 @@ const initializeClient = () => {
           userStatus[userId].phone_number = userId;
 
           if (!userStatus[userId].isExcited) {
-            if (message.body.toLowerCase() == "ya") {
+            if (userStatus[userId].messageBody.toLowerCase() == "ya") {
               // lanjut iya
               userStatus[userId].locationSession = await getLocations();
               await client.sendMessage(
@@ -224,7 +204,9 @@ const initializeClient = () => {
               userStatus[userId].isHaveProblem = true;
 
               userStatus[userId].isFilled = true;
-            } else if (message.body.toLowerCase() == "tidak") {
+            } else if (
+              userStatus[userId].messageBody.toLowerCase() == "tidak"
+            ) {
               // lanjut tidak
               userStatus[userId].isExcited = false;
               userStatus[userId].nextExcited = false; // untuk next ke pertanyaan selanjutnya karena "tidak"
@@ -268,7 +250,7 @@ const initializeClient = () => {
             userStatus[userId].nextExcitedAnswer = true;
           } else {
             if (userStatus[userId].nextExcitedAnswer) {
-              if (message.body.toLowerCase() == "3") {
+              if (userStatus[userId].messageBody.toLowerCase() == "3") {
                 await client.sendMessage(
                   userId,
                   `Mohon tuliskan kamu tertarik apa`
@@ -282,10 +264,10 @@ const initializeClient = () => {
                 userStatus[userId].isSchemaSelected = true;
                 userStatus[userId].isMinat = true;
               } else {
-                if (message.body.toLowerCase() == "1") {
+                if (userStatus[userId].messageBody.toLowerCase() == "1") {
                   await client.sendMessage(
                     userId,
-                    `Terima kasih telah menyampaikan kebutuhan yang dicari, namun saat ini Ahsana belum dapat memenuhinya. Next kalau misal kami ada penawaran menarik akan segera informasikan.`
+                    `Terimakasih telah menghubungi kami.\nNext kalau misal kami ada penawaran menarik akan segera kami informasikan.`
                   );
                   await postNextProject(
                     "ruko",
@@ -304,10 +286,12 @@ const initializeClient = () => {
                   userStatus[userId].isHouseTypeSelected = true;
                   userStatus[userId].isSchemaSelected = true;
                   userStatus[userId].isMinat = true;
-                } else if (message.body.toLowerCase() == "2") {
+                } else if (
+                  userStatus[userId].messageBody.toLowerCase() == "2"
+                ) {
                   await client.sendMessage(
                     userId,
-                    `Terima kasih telah menyampaikan kebutuhan yang dicari, namun saat ini Ahsana belum dapat memenuhinya. Next kalau misal kami ada penawaran menarik akan segera informasikan.`
+                    `Terimakasih telah menghubungi kami.\nNext kalau misal kami ada penawaran menarik akan segera kami informasikan.`
                   );
                   await postNextProject(
                     "tanah",
@@ -327,7 +311,7 @@ const initializeClient = () => {
                   userStatus[userId].isSchemaSelected = true;
                   userStatus[userId].isMinat = true;
                 } else {
-                  if (message.body.toLowerCase() == "99") {
+                  if (userStatus[userId].messageBody.toLowerCase() == "99") {
                     await resetUserStatus(userId, true);
                     userStatus[userId].isLocationSelected = true;
                   } else {
@@ -343,12 +327,12 @@ const initializeClient = () => {
               if (userStatus[userId].nextExcitedWant) {
                 await client.sendMessage(
                   userId,
-                  `Terima kasih telah menyampaikan kebutuhan yang dicari, namun saat ini Ahsana belum dapat memenuhinya. Next kalau misal kami ada penawaran menarik akan segera informasikan.`
+                  `Terimakasih telah menghubungi kami.\nNext kalau misal kami ada penawaran menarik akan segera kami informasikan.`
                 );
 
                 await postNextProject(
                   "minat_lain",
-                  message.body,
+                  userStatus[userId].messageBody,
                   userStatus[userId].phone_number
                 );
                 await client.sendMessage(
@@ -371,16 +355,18 @@ const initializeClient = () => {
           if (!userStatus[userId].isLocationSelected) {
             if (!userStatus[userId].isFilled) {
               if (
-                userStatus[userId].locationSession.choice.includes(message.body)
+                userStatus[userId].locationSession.choice.includes(
+                  userStatus[userId].messageBody
+                )
               ) {
                 userStatus[userId].floorSession = await getFloors(
                   userStatus[userId].locationSession.ids[
-                    parseInt(message.body - 1)
+                    parseInt(userStatus[userId].messageBody - 1)
                   ]
                 );
                 userStatus[userId].locationName = await getLocationById(
                   userStatus[userId].locationSession.ids[
-                    parseInt(message.body - 1)
+                    parseInt(userStatus[userId].messageBody - 1)
                   ]
                 );
                 await client.sendMessage(
@@ -395,7 +381,7 @@ const initializeClient = () => {
                 userStatus[userId].isLocationSelected = true;
                 userStatus[userId].isFloorSelected = false;
               } else {
-                if (message.body == numberOfTopMenu) {
+                if (userStatus[userId].messageBody == numberOfTopMenu) {
                   await resetUserStatus(userId, true);
                 } else {
                   await client.sendMessage(
@@ -417,11 +403,13 @@ const initializeClient = () => {
           if (!userStatus[userId].isFloorSelected) {
             if (!userStatus[userId].isFloorFilled) {
               if (
-                userStatus[userId].floorSession.choice.includes(message.body)
+                userStatus[userId].floorSession.choice.includes(
+                  userStatus[userId].messageBody
+                )
               ) {
                 userStatus[userId].floorIDSelected =
                   userStatus[userId].floorSession.ids[
-                    parseInt(message.body - 1)
+                    parseInt(userStatus[userId].messageBody - 1)
                   ];
                 userStatus[userId].houseTypeSession = await getHouseTypes(
                   userStatus[userId].floorIDSelected
@@ -462,7 +450,7 @@ const initializeClient = () => {
                 userStatus[userId].isFloorSelected = true;
               } else {
                 // salah
-                if (message.body == numberOfTopMenu) {
+                if (userStatus[userId].messageBody == numberOfTopMenu) {
                   await resetUserStatus(userId, true);
                 } else {
                   await client.sendMessage(
@@ -487,14 +475,14 @@ const initializeClient = () => {
             if (!userStatus[userId].isHouseTypeFilled) {
               if (
                 userStatus[userId].houseTypeSession.choice.includes(
-                  message.body
+                  userStatus[userId].messageBody
                 )
               ) {
                 userStatus[userId].houseTypeIDSelected =
                   userStatus[userId].houseTypeIDSelected !== undefined
                     ? userStatus[userId].houseTypeIDSelected
                     : userStatus[userId].houseTypeSession.ids[
-                        parseInt(message.body - 1)
+                        parseInt(userStatus[userId].messageBody - 1)
                       ];
 
                 userStatus[userId].houseDetail =
@@ -515,7 +503,7 @@ const initializeClient = () => {
                 userStatus[userId].isHouseTypeSelected = true;
                 userStatus[userId].isSchemaSelected = false;
               } else {
-                if (message.body == numberOfTopMenu) {
+                if (userStatus[userId].messageBody == numberOfTopMenu) {
                   await resetUserStatus(userId, true);
                 } else {
                   await client.sendMessage(
@@ -537,13 +525,13 @@ const initializeClient = () => {
 
           if (!userStatus[userId].isSchemaSelected) {
             if (!userStatus[userId].isSchemaFilled) {
-              if (["1", "2", "3"].includes(message.body)) {
+              if (["1", "2", "3"].includes(userStatus[userId].messageBody)) {
                 userStatus[userId].schemaSession =
                   await getSchemasAndDescriptions(
                     userStatus[userId].houseTypeIDSelected
                   );
 
-                if (message.body == "1") {
+                if (userStatus[userId].messageBody == "1") {
                   userStatus[userId].selectedPayment = userStatus[
                     userId
                   ].schemaSession.house_floor_type_payments.find(
@@ -556,7 +544,7 @@ const initializeClient = () => {
                   );
                   userStatus[userId].isSchemaSelected = true;
                   userStatus[userId].isMinat = true;
-                } else if (message.body == "3") {
+                } else if (userStatus[userId].messageBody == "3") {
                   userStatus[userId].selectedPayment = userStatus[
                     userId
                   ].schemaSession.house_floor_type_payments.find(
@@ -569,7 +557,7 @@ const initializeClient = () => {
                   );
                   userStatus[userId].isSchemaSelected = true;
                   userStatus[userId].isMinat = true;
-                } else if (message.body == "2") {
+                } else if (userStatus[userId].messageBody == "2") {
                   userStatus[userId].selectedPayment = userStatus[
                     userId
                   ].schemaSession.house_floor_type_payments.find(
@@ -592,7 +580,7 @@ const initializeClient = () => {
                 userStatus[userId].isMinat = false;
                 userStatus[userId].isMinatFilled = true;
               } else {
-                if (message.body == numberOfTopMenu) {
+                if (userStatus[userId].messageBody == numberOfTopMenu) {
                   await resetUserStatus(userId, true);
                 } else {
                   await client.sendMessage(
@@ -612,7 +600,7 @@ const initializeClient = () => {
 
           if (!userStatus[userId].isMinat) {
             if (!userStatus[userId].isMinatFilled) {
-              if (message.body.toLowerCase() == "minat") {
+              if (userStatus[userId].messageBody.toLowerCase() == "minat") {
                 // lanjut iya
                 await client.sendMessage(
                   userId,
@@ -626,7 +614,9 @@ const initializeClient = () => {
                 userStatus[userId].isMitraLocationSelected = true;
                 userStatus[userId].isHaveProblem = true;
                 userStatus[userId].isMinatFalseFilled = true;
-              } else if (message.body.toLowerCase() == "kurang minat") {
+              } else if (
+                userStatus[userId].messageBody.toLowerCase() == "kurang minat"
+              ) {
                 // lanjut tidak
                 await client.sendMessage(
                   userId,
@@ -655,8 +645,8 @@ const initializeClient = () => {
 
           if (!userStatus[userId].isMinatTrue) {
             if (!userStatus[userId].isMinatTrueFilled) {
-              if (["1", "2", "3"].includes(message.body)) {
-                if (message.body.toLowerCase() == "1") {
+              if (["1", "2", "3"].includes(userStatus[userId].messageBody)) {
+                if (userStatus[userId].messageBody.toLowerCase() == "1") {
                   await postUrgentProject(
                     userStatus[userId].houseTypeIDSelected,
                     "hot",
@@ -669,7 +659,9 @@ const initializeClient = () => {
                     `Terima kasih sudah menyampaikan kebutuhan rumah Bapak/Ibu kepada MinHouse.\nDalam waktu dekat akan ada tim Ahsana Tuban yang akan menghubungi Bapak/Ibu untuk melanjutkan diskusi dan penawaran yang lebih detail.\nTerima kasih!`
                   );
                   userStatus[userId].isMinatTrue = true;
-                } else if (message.body.toLowerCase() == "2") {
+                } else if (
+                  userStatus[userId].messageBody.toLowerCase() == "2"
+                ) {
                   await postUrgentProject(
                     userStatus[userId].houseTypeIDSelected,
                     "warm",
@@ -686,7 +678,9 @@ const initializeClient = () => {
                   userStatus[userId].isMinatFalse = true;
                   userStatus[userId].isMitraLocationSelected = true;
                   userStatus[userId].isHaveProblem = true;
-                } else if (message.body.toLowerCase() == "3") {
+                } else if (
+                  userStatus[userId].messageBody.toLowerCase() == "3"
+                ) {
                   await postUrgentProject(
                     userStatus[userId].houseTypeIDSelected,
                     "hot",
@@ -728,21 +722,23 @@ const initializeClient = () => {
 
           if (!userStatus[userId].isMinatFalse) {
             if (!userStatus[userId].isMinatFalseFilled) {
-              if (["1", "2", "3", "4"].includes(message.body)) {
-                if (message.body == "2") {
+              if (
+                ["1", "2", "3", "4"].includes(userStatus[userId].messageBody)
+              ) {
+                if (userStatus[userId].messageBody == "2") {
                   await client.sendMessage(
                     userId,
                     `Baik jika alasan kamu adalah *Tipe Rumah*. Saya sarankan untuk memilih tipe rumah kembali.`
                   );
                   await resetUserStatus(userId, false);
-                } else if (message.body == "3") {
+                } else if (userStatus[userId].messageBody == "3") {
                   await client.sendMessage(
                     userId,
                     `Mohon isikan lokasi yang kamu inginkan.`
                   );
                   userStatus[userId].isMitraLocationSelected = false;
                   userStatus[userId].isMinatFalse = true;
-                } else if (message.body == "1") {
+                } else if (userStatus[userId].messageBody == "1") {
                   userStatus[userId].isMinatFalse = true;
                   userStatus[userId].isMinatFalseFilled = true;
                   userStatus[userId].isMinat = true;
@@ -754,7 +750,7 @@ const initializeClient = () => {
                     userId,
                     `Di Ahsana ada 3 skema yang bisa kamu pilih.Mana yang cocok dengan rencana keuangan kamu?\n\n1. Cash Keras\n2. Cash Tempo\n3. Kredit${choiceToTop()}`
                   );
-                } else if (message.body == "4") {
+                } else if (userStatus[userId].messageBody == "4") {
                   await client.sendMessage(
                     userId,
                     `Problem apa yang kamu alami ?`
@@ -763,7 +759,7 @@ const initializeClient = () => {
                   userStatus[userId].isMinatFalse = true;
                 }
               } else {
-                if (message.body == numberOfTopMenu) {
+                if (userStatus[userId].messageBody == numberOfTopMenu) {
                   await resetUserStatus(userId, true);
                 } else {
                   await client.sendMessage(
@@ -784,12 +780,12 @@ const initializeClient = () => {
               userStatus[userId].isMitraLocationSelected = true;
               await postNextProject(
                 "lokasi_request",
-                message.body,
+                userStatus[userId].messageBody,
                 userStatus[userId].phone_number
               );
               await client.sendMessage(
                 userId,
-                `Baik kamu akan kami kabari untuk next project. Terimakasih`
+                `Terimakasih telah menghubungi kami.\nNext kalau misal kami ada penawaran menarik akan segera kami informasikan`
               );
               await client.sendMessage(
                 "6288996825018@s.whatsapp.net",
@@ -806,12 +802,12 @@ const initializeClient = () => {
               userStatus[userId].isHaveProblem = true;
               await postNextProject(
                 "problem_lain",
-                message.body,
+                userStatus[userId].messageBody,
                 userStatus[userId].phone_number
               );
               await client.sendMessage(
                 userId,
-                `Baik kamu akan kami kabari untuk next project. Terimakasih`
+                `Terimakasih telah menghubungi kami.\nNext kalau misal kami ada penawaran menarik akan segera kami informasikan`
               );
               await client.sendMessage(
                 "6288996825018@s.whatsapp.net",
