@@ -46,7 +46,7 @@ function resetUserStatus(userId, needWelcoming) {
 
   if (needWelcoming) {
     // Kirim pesan sambutan jika diperlukan
-    const welcomeMessage = `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\nKetik *Ya* kalau kamu sedang cari rumah\nKetik *Tidak* kalau tidak sedang cari rumah\n\nTerimakasih! ☺️`;
+    const welcomeMessage = `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\n1. Ya\n2. Tidak\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`;
     client.sendMessage(userId, welcomeMessage);
     userStatus[userId].isStart = true;
   }
@@ -134,7 +134,7 @@ async function postNextProject(type, descriptions, phone_number) {
   return data;
 }
 function welcomeMessage() {
-  return `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\nKetik *Ya* kalau kamu sedang cari rumah\nKetik *Tidak* kalau tidak sedang cari rumah\n\nTerimakasih! ☺️`;
+  return `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\n1. Ya\n2. Tidak\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`;
 }
 
 async function getSchemasAndDescriptions(id) {
@@ -182,7 +182,7 @@ const initializeClient = () => {
           userStatus[userId].phone_number = userId;
 
           if (!userStatus[userId].isExcited) {
-            if (userStatus[userId].messageBody.toLowerCase() == "ya") {
+            if (userStatus[userId].messageBody.toLowerCase() == "1") {
               // lanjut iya
               userStatus[userId].locationSession = await getLocations();
               await client.sendMessage(
@@ -204,9 +204,7 @@ const initializeClient = () => {
               userStatus[userId].isHaveProblem = true;
 
               userStatus[userId].isFilled = true;
-            } else if (
-              userStatus[userId].messageBody.toLowerCase() == "tidak"
-            ) {
+            } else if (userStatus[userId].messageBody.toLowerCase() == "2") {
               // lanjut tidak
               userStatus[userId].isExcited = false;
               userStatus[userId].nextExcited = false; // untuk next ke pertanyaan selanjutnya karena "tidak"
@@ -222,7 +220,7 @@ const initializeClient = () => {
             } else {
               await client.sendMessage(
                 userId,
-                `Maaf pilihan tidak tersedia.\n\nKetik *Ya* kalau kamu sedang cari rumah\nKetik *Tidak* kalau kamu tidak sedang cari rumah`
+                `Maaf pilihan tidak tersedia.\n\n1. Ya\n2. Tidak\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`
               );
               // salah
               userStatus[userId].isExcited = false;
@@ -574,7 +572,7 @@ const initializeClient = () => {
 
                 await client.sendMessage(
                   userId,
-                  `Apakah kamu berminat ? \n\nBalas *Minat* jika berminat\nBalas *Kurang minat* jika kurang berminat`
+                  `Apakah kamu berminat ? \n\n1. Minat\n2. Kurang Minat${choiceToTop()} `
                 );
 
                 userStatus[userId].isMinat = false;
@@ -600,7 +598,7 @@ const initializeClient = () => {
 
           if (!userStatus[userId].isMinat) {
             if (!userStatus[userId].isMinatFilled) {
-              if (userStatus[userId].messageBody.toLowerCase() == "minat") {
+              if (userStatus[userId].messageBody.toLowerCase() == "1") {
                 // lanjut iya
                 await client.sendMessage(
                   userId,
@@ -614,9 +612,7 @@ const initializeClient = () => {
                 userStatus[userId].isMitraLocationSelected = true;
                 userStatus[userId].isHaveProblem = true;
                 userStatus[userId].isMinatFalseFilled = true;
-              } else if (
-                userStatus[userId].messageBody.toLowerCase() == "kurang minat"
-              ) {
+              } else if (userStatus[userId].messageBody.toLowerCase() == "2") {
                 // lanjut tidak
                 await client.sendMessage(
                   userId,
@@ -627,10 +623,12 @@ const initializeClient = () => {
                 userStatus[userId].isMinatTrueFilled = true;
                 userStatus[userId].isMinatFalse = false;
                 userStatus[userId].isMinatFalseFilled = true;
+              } else if (userStatus[userId].messageBody == numberOfTopMenu) {
+                await resetUserStatus(userId, true);
               } else {
                 await client.sendMessage(
                   userId,
-                  "Maaf pilihan tidak tersedia. Balas *Minat* atau *Kurang minat*"
+                  `Maaf pilihan tidak tersedia. Pilihan yang tersedia : \n\n1. Minat\n2. Kurang Minat${choiceToTop()}`
                 );
                 userStatus[userId].isMinat = false;
                 userStatus[userId].isMinatTrue = true;
