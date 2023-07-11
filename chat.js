@@ -46,7 +46,7 @@ function resetUserStatus(userId, needWelcoming) {
 
   if (needWelcoming) {
     // Kirim pesan sambutan jika diperlukan
-    const welcomeMessage = `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\n1. Ya\n2. Tidak\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`;
+    const welcomeMessage = `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\n1. Ya\n2. Tidak\n0. Kembali Menu awal\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`;
     client.sendMessage(userId, welcomeMessage);
     userStatus[userId].isProjectStart = true;
   }
@@ -54,7 +54,7 @@ function resetUserStatus(userId, needWelcoming) {
 
 let numberOfTopMenu = "99";
 function choiceToTop() {
-  return `\nBelum tertarik? \nKetik: 99 Untuk kembali ke Menu Awal`;
+  return `\nBelum tertarik? \nKetik: 99 Untuk kembali ke Menu Proyek`;
 }
 
 async function getCustomMenus() {
@@ -143,7 +143,7 @@ async function postNextProject(type, descriptions, phone_number) {
   return data;
 }
 function welcomeMessage() {
-  return `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\n1. Ya\n2. Tidak\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`;
+  return `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\n1. Ya\n2. Tidak\n0. Kembali Menu awal\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`;
 }
 
 async function startCustomMenu() {
@@ -320,6 +320,22 @@ const initializeClient = () => {
                   userStatus[userId].isMinatFalse = true;
                   userStatus[userId].isMitraLocationSelected = true;
                   userStatus[userId].isHaveProblem = true;
+                } else if (
+                  userStatus[userId].messageBody.toLowerCase() == "0"
+                ) {
+                  userStatus[userId].isProjectStart = true;
+                  userStatus[userId].isProjectStart2 = true;
+                  userStatus[userId].isMenuSelected = false;
+                  userStatus[userId].isMenuShown = false;
+
+                  await resetUserStatus(userId, false);
+                  userStatus[userId].isStart = true;
+                  userStatus[userId].menu = await startCustomMenu();
+                  await client.sendMessage(
+                    userId,
+                    userStatus[userId].menu.text
+                  );
+                  return;
                 } else {
                   await client.sendMessage(
                     userId,
