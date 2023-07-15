@@ -46,7 +46,7 @@ function resetUserStatus(userId, needWelcoming) {
 
   if (needWelcoming) {
     // Kirim pesan sambutan jika diperlukan
-    const welcomeMessage = `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\n1. Ya\n2. Tidak\n0. Kembali Menu awal\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`;
+    const welcomeMessage = `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\n*1. Ya*\n*2. Tidak*\n*0. Kembali Menu Awal*\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`;
     client.sendMessage(userId, welcomeMessage);
     userStatus[userId].isProjectStart = true;
   }
@@ -143,16 +143,18 @@ async function postNextProject(type, descriptions, phone_number) {
   return data;
 }
 function welcomeMessage() {
-  return `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\n1. Ya\n2. Tidak\n0. Kembali Menu awal\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`;
+  return `Halo! \nMakasih ya sudah menghubungi Tim Ahsana.\nSebelum memulai, kami ingin tahu apakah kamu sedang cari rumah?\n\n*1. Ya*\n*2. Tidak*\n*0. Kembali Menu Awal*\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`;
 }
 
-async function startCustomMenu() {
+async function startCustomMenu(restart) {
   let data = await getCustomMenus();
   let text = ``;
   let choice = [];
   let ids = [];
   let i = 0;
-  text += `Halo! \nMakasih ya sudah menghubungi Tim Ahsana. Apa yang sedang anda cari ?\n\n`;
+  if(restart){
+    text += `Halo! \nMakasih ya sudah menghubungi Tim Ahsana. Apa yang sedang anda cari ?\n\n`;
+  }
   data.forEach((element, index) => {
     i = index + 1;
     text += `*${index + 1}. ${element.name}*\n`;
@@ -198,7 +200,7 @@ const initializeClient = () => {
       }
 
       userStatus[userId].messageBody = message.body;
-      userStatus[userId].menu = await startCustomMenu();
+      userStatus[userId].menu = await startCustomMenu(true);
       try {
         if (!userStatus[userId].isStart) {
           let text = userStatus[userId].messageBody.toLowerCase();
@@ -222,12 +224,31 @@ const initializeClient = () => {
               userStatus[userId].isMenuSelected = false;
               userStatus[userId].isProjectStart = false;
             } else {
-              await client.sendMessage(
-                userId,
-                `Maaf pilihan tidak tersedia.\nSilahkan ketikan angka sesuai pilihan kamu ☺️`
-              );
-              userStatus[userId].isMenuSelected = true;
-              userStatus[userId].isProjectStart = false;
+              if (
+                userStatus[userId].messageBody.toLowerCase() == "0"
+              ) {
+                userStatus[userId].isProjectStart = true;
+                userStatus[userId].isProjectStart2 = true;
+                userStatus[userId].isMenuSelected = false;
+                userStatus[userId].isMenuShown = false;
+
+                await resetUserStatus(userId, false);
+                userStatus[userId].isStart = true;
+                userStatus[userId].menu = await startCustomMenu(true);
+                await client.sendMessage(
+                  userId,
+                  userStatus[userId].menu.text
+                );
+                return;
+              }else{
+                userStatus[userId].menu = await startCustomMenu(false);
+                await client.sendMessage(
+                  userId,
+                  `Maaf pilihan tidak tersedia. Berikut adalah pilihan yang tersedia\n${userStatus[userId].menu.text}*0. Kembali Menu Utama*`
+                );
+                userStatus[userId].isMenuSelected = true;
+                userStatus[userId].isProjectStart = false;
+              }
             }
           }
 
@@ -330,7 +351,7 @@ const initializeClient = () => {
 
                   await resetUserStatus(userId, false);
                   userStatus[userId].isStart = true;
-                  userStatus[userId].menu = await startCustomMenu();
+                  userStatus[userId].menu = await startCustomMenu(true);
                   await client.sendMessage(
                     userId,
                     userStatus[userId].menu.text
@@ -339,7 +360,7 @@ const initializeClient = () => {
                 } else {
                   await client.sendMessage(
                     userId,
-                    `Maaf pilihan tidak tersedia.\n\n1. Ya\n2. Tidak\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`
+                    `Maaf pilihan tidak tersedia.\n\n*1. Ya*\n*2. Tidak*\n*0. Kembali Menu Utama*\n\nSilahkan ketikan angka sesuai pilihan kamu ☺️`
                   );
                   // salah
                   userStatus[userId].isExcited = false;
@@ -360,7 +381,7 @@ const initializeClient = () => {
               if (!userStatus[userId].nextExcited) {
                 await client.sendMessage(
                   userId,
-                  `Apakah Kamu saat ini sedang mencari produk berikut ?\n\n1. Ruko\n2. Tanah\n3. Tidak minat kedua produk diatas\n99. Kembali ke Menu Awal`
+                  `Apakah Kamu saat ini sedang mencari produk berikut ?\n\n*1. Ruko*\n*2. Tanah*\n*3. Tidak minat kedua produk diatas*\n*99. Kembali ke Menu Awal*`
                 );
                 userStatus[userId].nextExcited = true; // untuk next kepertanyaan selanjutnya
                 userStatus[userId].isExcited = true;
@@ -616,7 +637,7 @@ const initializeClient = () => {
 
                     await client.sendMessage(
                       userId,
-                      `Di Ahsana ada 3 skema yang bisa kamu pilih.Mana yang cocok dengan rencana keuangan kamu?\n\n1. Cash Keras\n2. Cash Tempo\n3. Kredit\n${choiceToTop()}`
+                      `Di Ahsana ada 3 skema yang bisa kamu pilih.Mana yang cocok dengan rencana keuangan kamu?\n\n*1. Cash Keras*\n*2. Cash Tempo*\n*3. Kredit*\n${choiceToTop()}`
                     );
 
                     userStatus[userId].isHouseTypeSelected = true;
@@ -695,7 +716,7 @@ const initializeClient = () => {
 
                     await client.sendMessage(
                       userId,
-                      `Apakah kamu berminat ? \n\n1. Minat\n2. Kurang Minat${choiceToTop()} `
+                      `Apakah kamu berminat ? \n\n*1. Minat*\n*2. Kurang Minat*${choiceToTop()} `
                     );
 
                     userStatus[userId].isMinat = false;
@@ -755,7 +776,7 @@ const initializeClient = () => {
                   } else {
                     await client.sendMessage(
                       userId,
-                      `Maaf pilihan tidak tersedia. Pilihan yang tersedia : \n\n1. Minat\n2. Kurang Minat${choiceToTop()}`
+                      `Maaf pilihan tidak tersedia. Pilihan yang tersedia : \n\n*1. Minat*\n*2. Kurang Minat*${choiceToTop()}`
                     );
                     userStatus[userId].isMinat = false;
                     userStatus[userId].isMinatTrue = true;
@@ -877,7 +898,7 @@ const initializeClient = () => {
 
                       await client.sendMessage(
                         userId,
-                        `Di Ahsana ada 3 skema yang bisa kamu pilih.Mana yang cocok dengan rencana keuangan kamu?\n\n1. Cash Keras\n2. Cash Tempo\n3. Kredit${choiceToTop()}`
+                        `Di Ahsana ada 3 skema yang bisa kamu pilih.Mana yang cocok dengan rencana keuangan kamu?\n\n*1. Cash Keras*\n*2. Cash Tempo*\n*3. Kredit*${choiceToTop()}`
                       );
                     } else if (userStatus[userId].messageBody == "4") {
                       await client.sendMessage(
