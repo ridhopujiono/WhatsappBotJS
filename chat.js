@@ -153,7 +153,7 @@ async function startCustomMenu(restart) {
   let ids = [];
   let i = 0;
   if (restart) {
-    text += `Halo! \nMakasih ya sudah menghubungi Tim Ahsana. Apa yang sedang anda cari ?\n\n`;
+    text += `Halo! \nMakasih ya sudah menghubungi Tim Ahsana. Apa yang sedang kamu cari ?\n\n`;
   }
   text += `*${i + 1}. Proyek Ahsana*\n`;
   data.forEach((element, index) => {
@@ -283,9 +283,14 @@ const initializeClient = () => {
                 }
               }
 
-              userStatus[userId].isMenuSelected = false;
-              userStatus[userId].isStart = false;
-              userStatus[userId].isMenuShown = false;
+              // await client.sendMessage(
+              //   userId,
+              //   `Silahkan tekan : \n\n*1. Proyek Ahsana*\n*0. Kembali Ke Menu Awal*`
+              // );
+
+              // userStatus[userId].isMenuSelected = false;
+              // userStatus[userId].isStart = false;
+              // userStatus[userId].isMenuShown = false;
             }
           }
 
