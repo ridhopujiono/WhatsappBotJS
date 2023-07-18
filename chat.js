@@ -288,9 +288,9 @@ const initializeClient = () => {
               //   `Silahkan tekan : \n\n*1. Proyek Ahsana*\n*0. Kembali Ke Menu Awal*`
               // );
 
-              // userStatus[userId].isMenuSelected = false;
-              // userStatus[userId].isStart = false;
-              // userStatus[userId].isMenuShown = false;
+              userStatus[userId].isMenuSelected = false;
+              userStatus[userId].isStart = false;
+              userStatus[userId].isMenuShown = false;
             }
           }
 
