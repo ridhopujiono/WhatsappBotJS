@@ -152,17 +152,18 @@ async function startCustomMenu(restart) {
   let choice = [];
   let ids = [];
   let i = 0;
-  if(restart){
+  if (restart) {
     text += `Halo! \nMakasih ya sudah menghubungi Tim Ahsana. Apa yang sedang anda cari ?\n\n`;
   }
+  text += `*${i + 1}. Proyek Ahsana*\n`;
   data.forEach((element, index) => {
     i = index + 1;
-    text += `*${index + 1}. ${element.name}*\n`;
+    text += `*${index + 2}. ${element.name}*\n`;
     choice.push((index + 1).toString());
     ids.push(element.id.toString());
   });
   choice.push((i + 1).toString());
-  text += `*${i + 1}. Proyek Ahsana*\n`;
+  // console.log({ ids: ids, text: text, data: data, choice: choice });
   return {
     ids: ids,
     text: text,
@@ -203,14 +204,17 @@ const initializeClient = () => {
       userStatus[userId].menu = await startCustomMenu(true);
       try {
         if (!userStatus[userId].isStart) {
-          let text = userStatus[userId].messageBody.toLowerCase();
+          userStatus[userId].text =
+            userStatus[userId].messageBody.toLowerCase();
           // Menangkap kata apa pun dari pengguna
-          let regex = /(\w+)/g;
-          let matches = text.match(regex);
-          if (matches) {
+          userStatus[userId].regex = /(\w+)/g;
+          userStatus[userId].matches = userStatus[userId].text.match(
+            userStatus[userId].regex
+          );
+          if (userStatus[userId].matches) {
             await client.sendMessage(userId, userStatus[userId].menu.text);
+            userStatus[userId].isStart = true;
           }
-          userStatus[userId].isStart = true;
         } else {
           if (!userStatus[userId].isMenuShown) {
             if (
@@ -224,9 +228,7 @@ const initializeClient = () => {
               userStatus[userId].isMenuSelected = false;
               userStatus[userId].isProjectStart = false;
             } else {
-              if (
-                userStatus[userId].messageBody.toLowerCase() == "0"
-              ) {
+              if (userStatus[userId].messageBody.toLowerCase() == "0") {
                 userStatus[userId].isProjectStart = true;
                 userStatus[userId].isProjectStart2 = true;
                 userStatus[userId].isMenuSelected = false;
@@ -235,12 +237,9 @@ const initializeClient = () => {
                 await resetUserStatus(userId, false);
                 userStatus[userId].isStart = true;
                 userStatus[userId].menu = await startCustomMenu(true);
-                await client.sendMessage(
-                  userId,
-                  userStatus[userId].menu.text
-                );
+                await client.sendMessage(userId, userStatus[userId].menu.text);
                 return;
-              }else{
+              } else {
                 userStatus[userId].menu = await startCustomMenu(false);
                 await client.sendMessage(
                   userId,
@@ -253,18 +252,13 @@ const initializeClient = () => {
           }
 
           if (!userStatus[userId].isMenuSelected) {
-            if (
-              userStatus[userId].messageBody ==
-              userStatus[userId].menu.choice[
-                userStatus[userId].menu.choice.length - 1
-              ]
-            ) {
+            if (userStatus[userId].messageBody == "1") {
               userStatus[userId].isMenuSelected = true;
               userStatus[userId].isProjectStart = true;
             } else {
               userStatus[userId].detailMenu = await getCustomMenuById(
                 userStatus[userId].menu.ids[
-                  parseInt(userStatus[userId].messageBody - 1)
+                  parseInt(userStatus[userId].messageBody - 2)
                 ]
               );
               await client.sendMessage(
