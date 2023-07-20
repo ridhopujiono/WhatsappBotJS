@@ -289,6 +289,7 @@ const initializeClient = () => {
                 }
               }
 
+              await client.sendMessage(userId, `Silahkan tekan:\n\n*0. Kembali Menu Utama*`)
               userStatus[userId].isMenuSelected = false;
               userStatus[userId].isStart = false;
               userStatus[userId].isMenuShown = false;
