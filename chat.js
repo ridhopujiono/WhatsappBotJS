@@ -283,7 +283,10 @@ const initializeClient = () => {
                 }
               }
 
-              await client.sendMessage(userId, `Silahkan tekan:\n\n*0. Kembali Menu Utama*`)
+              await client.sendMessage(
+                userId,
+                `Silahkan tekan:\n\n*0. Kembali Menu Utama*`
+              );
               userStatus[userId].isMenuSelected = false;
               userStatus[userId].isStart = false;
               userStatus[userId].isMenuShown = false;
@@ -408,7 +411,7 @@ const initializeClient = () => {
                         userStatus[userId].phone_number
                       );
                       await client.sendMessage(
-                        "6288996825018@s.whatsapp.net",
+                        "6281310005081@s.whatsapp.net",
                         `Ada akifitas user dengan nomor ${userStatus[userId].phone_number}. Mohon cek dashboard *Usulan Proyek*`
                       );
                       await resetUserStatus(userId, false);
@@ -432,7 +435,7 @@ const initializeClient = () => {
                         userStatus[userId].phone_number
                       );
                       await client.sendMessage(
-                        "6288996825018@s.whatsapp.net",
+                        "6281310005081@s.whatsapp.net",
                         `Ada akifitas user dengan nomor ${userStatus[userId].phone_number}. Mohon cek dashboard *Usulan Proyek*`
                       );
                       await resetUserStatus(userId, false);
@@ -471,7 +474,7 @@ const initializeClient = () => {
                       userStatus[userId].phone_number
                     );
                     await client.sendMessage(
-                      "6288996825018@s.whatsapp.net",
+                      "6281310005081@s.whatsapp.net",
                       `Ada akifitas user dengan nomor ${userStatus[userId].phone_number}. Mohon cek dashboard *Usulan Proyek*`
                     );
 
@@ -843,7 +846,7 @@ const initializeClient = () => {
                     }
 
                     await client.sendMessage(
-                      "6288996825018@s.whatsapp.net",
+                      "6281310005081@s.whatsapp.net",
                       `Ada akifitas user dengan nomor ${userStatus[userId].phone_number}. Mohon cek dashboard *Daftar Peminat*`
                     );
                     await resetUserStatus(userId, false);
@@ -933,7 +936,7 @@ const initializeClient = () => {
                     `Terimakasih telah menghubungi kami.\nNext kalau misal kami ada penawaran menarik akan segera kami informasikan`
                   );
                   await client.sendMessage(
-                    "6288996825018@s.whatsapp.net",
+                    "6281310005081@s.whatsapp.net",
                     `Ada akifitas user dengan nomor ${userStatus[userId].phone_number}. Mohon cek dashboard *Usulan Proyek*`
                   );
                   await resetUserStatus(userId, false);
@@ -954,7 +957,7 @@ const initializeClient = () => {
                     `Terimakasih telah menghubungi kami.\nNext kalau misal kami ada penawaran menarik akan segera kami informasikan`
                   );
                   await client.sendMessage(
-                    "6288996825018@s.whatsapp.net",
+                    "6281310005081@s.whatsapp.net",
                     `Ada akifitas user dengan nomor ${userStatus[userId].phone_number}. Mohon cek dashboard *Usulan Proyek*`
                   );
                   await resetUserStatus(userId, false);
